@@ -1,11 +1,11 @@
-import Encrypt from "@/components/Encrypt";
+import Decrypt from "@/components/Decrypt";
 
 export default function Home() {
 
 
   return (
     <main>
-      <Encrypt />
+      <Decrypt />
     </main>
   )
 }
