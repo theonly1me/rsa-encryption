@@ -64,7 +64,7 @@ const copyValue = (value: ArrayBuffer) => {
           </div>
           <button onClick={handleDecrypt} className='py-4 px-1 border-2 text-white text-xl'>Decrypt</button>
         </div>
-        <div className="text-white max-w-sm break-words min-h-96 flex flex-col gap-2">
+        <div className="text-white max-w-sm break-words min-h-96 flex flex-col gap-2 px-2 py-4">
           <div className="flex gap-2">
             <label htmlFor="result" className="text-white">Decrypted value</label> 
             <MdOutlineCopyAll className="text-2xl text-gray-500 hover:text-gray-300 active:text-gray-100 cursor-pointer" onClick={() => copyValue(decryptedData as ArrayBuffer)}/>
