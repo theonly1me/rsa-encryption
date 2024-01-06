@@ -1,35 +1,36 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import { MdOutlineCopyAll } from "react-icons/md";
-import StoreInitializer from "../state/StoreInitializer";
 
 const Encrypt = () => {
-  const publicKeyRef = useRef<HTMLTextAreaElement>(null);
-  const plainTextRef = useRef<HTMLTextAreaElement>(null);
   const [encryptedData, setEncryptedData] = useState<ArrayBuffer>();
+  const [publicKey, setPublicKey] = useState<string>();
+  const [plainText, setPlainText] = useState<string>();
+  const [errorMessage, setErrorMessage] = useState<string>();
+
+  useEffect(() => {
+    const keyPair = localStorage.getItem("keyPair");
+    if (keyPair) {
+      const { publicKey } = JSON.parse(keyPair);
+      setPublicKey(publicKey);
+    }
+  }, []);
 
   const handleEncrypt = async () => {
     try {
-      const publicKeyString = publicKeyRef.current?.value
-        .split(String.raw`\n`)
-        .join("\n");
-
-      const publicKey = await importPublicKey(publicKeyString as string);
-
-      const plaintext = plainTextRef.current?.value;
+      const spki = await importPublicKey(publicKey as string);
 
       const encryptedData = await window.crypto.subtle.encrypt(
         {
           name: "RSA-OAEP",
         },
-        publicKey, // from generateKey or importKey above
-        Buffer.from(plaintext as string, "utf-8") // ArrayBuffer of data you want to encrypt
+        spki,
+        Buffer.from(plainText as string, "utf-8")
       );
 
       setEncryptedData(encryptedData);
-    } catch (error: unknown) {
-      // @ts-ignore
-      console.error("An error occurred during encryption", error.stack);
+    } catch (e) {
+      setErrorMessage("Public key specified is invalid.");
     }
   };
 
@@ -37,18 +38,15 @@ const Encrypt = () => {
     const pemHeader = "-----BEGIN PUBLIC KEY-----";
     const pemFooter = "-----END PUBLIC KEY-----";
 
-    // Extract the key content from PEM format
     const keyContent = publicKeyPEM
       .replace(pemHeader, "")
       .replace(pemFooter, "")
       .replace(/\s/g, "");
 
-    // Convert base64-encoded key to ArrayBuffer
-    const keyBuffer = Uint8Array.from(atob(keyContent), c =>
+    const keyBuffer = Uint8Array.from(decodeBase64ToString(keyContent), c =>
       c.charCodeAt(0)
     ).buffer;
 
-    // Import the key as CryptoKey
     const publicKey = await crypto.subtle.importKey(
       "spki",
       keyBuffer,
@@ -66,23 +64,73 @@ const Encrypt = () => {
     );
   };
 
+  const generateKeyPair = async () => {
+    const keyPair = await window.crypto.subtle.generateKey(
+      {
+        modulusLength: 4096,
+        name: "RSA-OAEP",
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: "SHA-256",
+      },
+      true,
+      ["encrypt", "decrypt"]
+    );
+
+    const [spkiBuffer, pkcs8Buffer] = await Promise.all([
+      window.crypto.subtle.exportKey("spki", keyPair.publicKey),
+      window.crypto.subtle.exportKey("pkcs8", keyPair.privateKey),
+    ]);
+
+    const publicKey = btoa(String.fromCharCode(...new Uint8Array(spkiBuffer)));
+    const privateKey = btoa(
+      String.fromCharCode(...new Uint8Array(pkcs8Buffer))
+    );
+
+    setPublicKey(publicKey);
+    setErrorMessage("");
+
+    localStorage.setItem("keyPair", JSON.stringify({ publicKey, privateKey }));
+  };
+
+  const decodeBase64ToString = (base64Data: string) => {
+    try {
+      return atob(base64Data);
+    } catch (error) {
+      return "Public key specified is invalid.";
+    }
+  };
+
   return (
-    <div className="flex min-h-screen flex-col items-center gap-12 p-8 bg-black">
-      <StoreInitializer />
+    <div className="min-h-screen flex flex-col items-center gap-12 p-8 bg-black">
       <h1 className="text-white text-5xl font-semibold">RSA Encryption</h1>
-      <div className="flex-col flex md:flex-row items-center justify-evenly w-full">
-        <div className="px-2 py-4 flex flex-col gap-4">
+      <div className="flex-col flex md:flex-row items-center justify-evenly w-80 md:w-full">
+        <div className="px-2 py-4 flex flex-col gap-4 max-w-full">
           <div className="flex flex-col gap-2">
             <label className="text-white" htmlFor="publicKey">
               Public key
             </label>
+            <p className="text-neutral-300 flex gap-1 text-sm">
+              Don&apos;t have a keypair?
+              <span>
+                <span
+                  onClick={generateKeyPair}
+                  className="underline cursor-pointer text-neutral-300 hover:text-neutral-200 active:text-neutral-50 transition-all duration-300"
+                >
+                  Generate a new one
+                </span>
+                .
+              </span>
+            </p>
             <textarea
               className="text-neutral-900 p-2 text-sm"
               id="publicKey"
               rows={4}
               cols={50}
-              ref={publicKeyRef}
-              value={publicKeyRef.current?.value}
+              value={publicKey}
+              onChange={e => {
+                setPublicKey(e.target.value.split(String.raw`\n`).join("\n"));
+                setErrorMessage("");
+              }}
               placeholder="Enter public key here..."
             />
           </div>
@@ -95,8 +143,8 @@ const Encrypt = () => {
               className="text-neutral-900 p-2 text-sm"
               rows={4}
               cols={50}
-              ref={plainTextRef}
-              value={plainTextRef.current?.value}
+              value={plainText}
+              onChange={e => setPlainText(e.target.value)}
               placeholder="Enter text to encrypt..."
             />
           </div>
@@ -117,9 +165,12 @@ const Encrypt = () => {
               onClick={() => copyValue(encryptedData as ArrayBuffer)}
             />
           </div>
+          <p className="text-red-400 text-sm">{errorMessage}</p>
           <textarea
             id="result"
-            className="p-2 min-h-72 min-w-96 text-neutral-700 text-sm"
+            className="p-2 min-h-72 min-w-80 md:min-w-96 text-neutral-700 text-sm"
+            placeholder="Encrypted value will appear here..."
+            readOnly
             defaultValue={btoa(
               String.fromCharCode(
                 ...new Uint8Array(encryptedData as ArrayBuffer)
