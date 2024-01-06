@@ -1,34 +1,45 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# RSA Encryption using Web Crypto API
 
-## Getting Started
+This is a simple demonstration on using the (WebCrypto API)[https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API] to generate a public & private keypair, perform client side RSA encryption & decryption. **For educational purpose only.**
 
-First, run the development server:
+### What is RSA Encryption?
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
+RSA, named after its inventors Ron Rivest, Adi Shamir, and Leonard Adleman, is a widely adopted public-key cryptography algorithm that plays a crucial role in securing digital communication. Unlike traditional symmetric-key algorithms, where a single key is used for both encryption and decryption, RSA employs a pair of keys: a public key and a private key.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The public key is shared openly, allowing anyone to encrypt messages, but only the possessor of the corresponding private key can decrypt them. This asymmetric nature of RSA makes it particularly suited for secure communication over untrusted networks. The strength of RSA lies in the difficulty of factoring the product of two large prime numbers, forming the basis of the keys.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+When someone wishes to send a confidential message, they use the recipient's public key to encrypt it. The encrypted message, even if intercepted, remains unreadable without the recipient's private key. This elegant approach addresses key distribution challenges faced by symmetric-key systems, providing a robust solution for secure data exchange on the internet.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+RSA encryption is widely employed in various applications, including secure web browsing, digital signatures, and the establishment of secure communication channels. Its mathematical foundation, grounded in number theory, ensures a high level of security, making RSA a cornerstone in the realm of modern cryptography.
 
-## Learn More
+Understanding RSA encryption is fundamental for grasping the principles behind secure online communication, ensuring the confidentiality and integrity of sensitive information exchanged in the digital landscape.
 
-To learn more about Next.js, take a look at the following resources:
+## Encryption Details
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Algorithm:** RSA (Rivest–Shamir–Adleman) with Optimal Asymmetric Encryption Padding (OAEP).
+- **Key Length:** 4096 bits.
+- **Hash Algorithm:** SHA-256.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Features
 
-## Deploy on Vercel
+- **Generate Keypair:** Easily generate a new RSA keypair for encryption and decryption.
+- **RSA Encryption:** Encrypt a text message using a provided public key.
+- **RSA Decryption:** Decrypt an encrypted message using a provided private key.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Technologies Used
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- React
+- Next.js
+- TypeScript
+- Web Crypto API
+- TailwindCSS
+
+## Usage
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/theonly1me/rsa-encryption.git
+   ```
+
+2. Have fun :D
